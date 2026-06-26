@@ -4,19 +4,24 @@ package equipment
 // Note: This creates some tight coupling that could be refactored
 
 // EquipItem safely equips an item to a fighter
-// IMPERFECTION: Missing validation for slot conflicts
-func EquipItem(equipment *Equipment, currentEquipped map[string]*Equipment, slot string) error {
-	// INTENTIONAL IMPERFECTION: What if we already have something in this slot?
-	// Should unequip the old item first, but the current code just overwrites it
-	// This could cause items to be "lost" if players equip without checking
-
-	if equipment == nil {
-		return nil
+// Handles slot conflicts by returning the unequipped item
+func EquipItem(equipment *Equipment, currentEquipped map[string]*Equipment, slot string) *Equipment {
+	// Return the previously equipped item (if any)
+	var previousItem *Equipment
+	if existing, exists := currentEquipped[slot]; exists && existing != nil {
+		previousItem = existing
 	}
 
-	// Store the equipment
+	if equipment == nil {
+		if previousItem != nil {
+			delete(currentEquipped, slot)
+		}
+		return previousItem
+	}
+
+	// Store the new equipment
 	currentEquipped[slot] = equipment
-	return nil
+	return previousItem
 }
 
 // UnequipItem removes equipment from a slot
