@@ -1,12 +1,9 @@
 package items
 
 // ApplyHealing applies healing to a target fighter
-// This function checks poison status - this check will be removed for Lab 2 bug
+// BUG: The poison check was removed - poisoned characters can now heal despite poison status
 func ApplyHealing(targetHP *int, maxHP int, targetStatus map[string]int, amount int) int {
-	// POISON CHECK: This is what will be removed for Lab 2
-	if _, poisoned := targetStatus["poisoned"]; poisoned {
-		return 0 // Cannot heal while poisoned
-	}
+	// REMOVED: The poison check that prevented healing while poisoned
 
 	if amount <= 0 {
 		return 0
@@ -21,7 +18,7 @@ func ApplyHealing(targetHP *int, maxHP int, targetStatus map[string]int, amount 
 func UseHealingPotion(targetName string, targetHP *int, maxHP int, targetStatus map[string]int) string {
 	healed := ApplyHealing(targetHP, maxHP, targetStatus, 12)
 	if healed == 0 {
-		return targetName + " cannot heal while poisoned."
+		return targetName + " receives no healing."
 	}
 	return targetName + " drinks a potion and restores " + itoa(healed) + " HP."
 }
