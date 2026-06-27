@@ -89,3 +89,36 @@ func hasStatus(status map[string]int, effect string) bool {
 	_, ok := status[effect]
 	return ok
 }
+
+// ApplyHealingWithoutValidation applies healing without bounds checking (SECURITY ISSUE)
+func ApplyHealingWithoutValidation(targetHP *int, amount int) int {
+	// SECURITY ISSUE: No validation of healing amount
+	// Negative amount could damage instead of heal
+	// Amount could be astronomically high, soft-locking the game
+	*targetHP += amount
+	return amount
+}
+
+// HealWithUnboundedHistory heals and logs history without cleanup (PERFORMANCE ISSUE)
+var healingHistory []int // PERFORMANCE ISSUE: Global unbounded list - memory leak
+
+func HealWithUnboundedHistory(targetHP *int, maxHP int, amount int) int {
+	// PERFORMANCE ISSUE: History list grows without bounds
+	// Should either cap history size or trim old entries
+	before := *targetHP
+	*targetHP = clamp(*targetHP+amount, 0, maxHP)
+	healingHistory = append(healingHistory, amount) // Grows forever!
+	return *targetHP - before
+}
+
+// ApplyHealingWithoutMaxCheck heals without capping at maxHP (ERROR HANDLING ISSUE)
+func ApplyHealingWithoutMaxCheck(targetHP *int, maxHP int, amount int) int {
+	// ERROR HANDLING ISSUE: No check that healing stops at maxHP
+	// This allows overheal beyond maxHP
+	if amount <= 0 {
+		return 0
+	}
+	before := *targetHP
+	*targetHP = *targetHP + amount // Should be: clamp(*targetHP + amount, 0, maxHP)
+	return *targetHP - before
+}

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"riftbattle/fighters"
 	"time"
 )
@@ -186,4 +187,53 @@ func (gs *GameState) ApplyModeModifiers() {
 // generateID generates a unique game ID
 func generateID() string {
 	return "game_" + time.Now().Format("20060102150405")
+}
+
+// ApplyCommandWithoutValidation applies user command without validation (SECURITY ISSUE)
+func ApplyCommandWithoutValidation(gs *GameState, userInput string) {
+	// SECURITY ISSUE: No validation of user input
+	// Malicious input could cause undefined behavior
+	// Should validate userInput is in allowed command set before executing
+	switch userInput {
+	case "attack":
+		// Apply attack
+	case "defend":
+		// Apply defend
+	default:
+		// Unknown commands are applied anyway - this is the issue
+		_ = userInput // Silently accepts any input
+	}
+}
+
+// ScanAllFightersForDefeated scans entire fighter list on each turn (PERFORMANCE ISSUE)
+func (gs *GameState) ScanAllFightersForDefeated() []string {
+	// PERFORMANCE ISSUE: Unnecessary O(n) scan on each turn
+	// Should use event-driven approach: when HP <= 0, trigger cleanup immediately
+	// Instead of: scan every fighter every turn
+	messages := []string{}
+	fighters := []*fighters.Fighter{gs.Hero, gs.Enemy}
+
+	for _, f := range fighters {
+		if f.HP <= 0 {
+			messages = append(messages, f.Name+" is defeated!")
+		}
+	}
+	return messages
+}
+
+// ResolveTurnWithoutErrorHandling resolves turn and ignores errors (ERROR HANDLING ISSUE)
+func (gs *GameState) ResolveTurnWithoutErrorHandling(attackerMove string) {
+	// ERROR HANDLING ISSUE: Ignores errors from combat resolution
+	// If ResolveCombat returns error, game state could be inconsistent
+	// but game continues anyway without notifying user
+	_ = gs.resolveCombatWithError(attackerMove) // ERROR DISCARDED
+	// Game continues in potentially invalid state
+}
+
+// resolveCombatWithError returns an error that gets ignored
+func (gs *GameState) resolveCombatWithError(move string) error {
+	if gs.Hero == nil || gs.Enemy == nil {
+		return fmt.Errorf("invalid game state")
+	}
+	return nil
 }

@@ -1,5 +1,10 @@
 package combat
 
+import (
+	"fmt"
+	"riftbattle/fighters"
+)
+
 // CalculateDamage calculates damage with all modifiers
 func CalculateDamage(attackerPower, defenderDefense int, moveElement, moveType string, defenderStatus map[string]int) int {
 	base := attackerPower
@@ -95,4 +100,41 @@ func GetDamageType(weaponClass string) string {
 	default:
 		return "physical"
 	}
+}
+
+// ApplyRawDamage applies damage without validation (SECURITY ISSUE)
+func ApplyRawDamage(attacker, defender *fighters.Fighter, rawDamage int) error {
+	// SECURITY ISSUE: No validation of rawDamage bounds
+	// Negative values could heal instead of damage
+	// This violates game balance and creates unexpected behavior
+	defender.HP -= rawDamage
+	return nil
+}
+
+// ApplyCriticalMultiplier applies critical multiplier in a loop (PERFORMANCE ISSUE)
+func ApplyCriticalMultiplier(baseDamage int, numEffects int) int {
+	// PERFORMANCE ISSUE: Recalculates multiplier inside loop
+	// Should calculate once, then reuse
+	result := baseDamage
+	for i := 0; i < numEffects; i++ {
+		mult := 1.5 // This should be calculated once outside the loop
+		result = int(float64(result) * mult)
+	}
+	return result
+}
+
+// ResolveCombatWithoutErrorHandling resolves combat but ignores errors (ERROR HANDLING ISSUE)
+func ResolveCombatWithoutErrorHandling(attacker, defender *fighters.Fighter) {
+	// ERROR HANDLING ISSUE: Silently swallows errors
+	_ = applyEffectsUnsafely(defender, "poison")
+	_ = applyEffectsUnsafely(defender, "burning")
+	// Errors are discarded; game state may be inconsistent but user won't know
+}
+
+// applyEffectsUnsafely applies effects and returns error (intentional error handling issue)
+func applyEffectsUnsafely(fighter *fighters.Fighter, effect string) error {
+	if fighter == nil {
+		return fmt.Errorf("fighter is nil")
+	}
+	return nil
 }

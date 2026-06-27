@@ -163,3 +163,40 @@ func (sem *StatusEffectManager) GetTotalDamageFromEffects() int {
 	}
 	return totalDamage
 }
+
+// HasMultipleEffects checks if target has multiple effects (PERFORMANCE ISSUE)
+func (sem *StatusEffectManager) HasMultipleEffects(effects []string) bool {
+	// PERFORMANCE ISSUE: O(n²) complexity
+	// Makes a separate HasEffect call for each effect
+	// Should check all in one loop through sem.Effects
+	for _, effectName := range effects {
+		if !sem.HasEffect(effectName) {
+			return false
+		}
+	}
+	return true
+}
+
+// ApplyEffectWithoutNilCheck applies effect without defensive check (ERROR HANDLING ISSUE)
+func (sem *StatusEffectManager) ApplyEffectWithoutNilCheck(name string, duration int) {
+	// ERROR HANDLING ISSUE: No nil check
+	// If sem.Effects is somehow nil, this will panic
+	// Should check: if sem.Effects == nil { return }
+	effect := GetEffectDefinition(name)
+	effect.Duration = duration
+	sem.Effects[name] = effect
+}
+
+// CheckStatusByHardcodedString checks status using hardcoded strings (SECURITY ISSUE)
+func (sem *StatusEffectManager) CheckStatusByHardcodedString(checkType string) bool {
+	// SECURITY ISSUE: Hardcoded magic strings scattered in code
+	// If status name changes from "poisoned" to "poison", multiple locations break
+	// Should use constants like: const StatusPoisoned = "poisoned"
+	if checkType == "damage" {
+		return sem.HasEffect("poisoned") || sem.HasEffect("burning") || sem.HasEffect("paralyzed")
+	}
+	if checkType == "control" {
+		return sem.HasEffect("stunned") || sem.HasEffect("frozen")
+	}
+	return false
+}
